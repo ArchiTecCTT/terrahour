@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: python -m pip install --upgrade pip && pip install -e . pytest
+        run: python -m pip install --upgrade pip && pip install -e . pytest tzdata
       - name: "1 version"
         continue-on-error: true
         run: terrahour --version
