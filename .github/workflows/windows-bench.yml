@@ -1,0 +1,51 @@
+name: windows-bench
+
+# Test bench on the fork only: which parts of terrahour already work on native Windows?
+on:
+  push:
+    branches: [bench/**]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      TERRAHOUR_OFFLINE: "1"
+      PYTHONIOENCODING: utf-8
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install --upgrade pip && pip install -e . pytest && pip show tzdata | head -2
+      - name: "1 version"
+        continue-on-error: true
+        run: terrahour --version
+      - name: "2 json"
+        continue-on-error: true
+        run: terrahour --json --at 2026-03-18T14:30:00Z | head -c 600
+      - name: "3 once (full map frame)"
+        continue-on-error: true
+        run: terrahour --once --size 100x30 --at 2026-03-18T14:30:00Z > once.txt && wc -c once.txt && head -c 400 once.txt
+      - name: "4 once compact"
+        continue-on-error: true
+        run: terrahour --once --compact --size 60x20 --at 2026-03-18T14:30:00Z | head -c 400
+      - name: "5 line (status bar)"
+        continue-on-error: true
+        run: terrahour --line --at 2026-03-18T14:30:00Z
+      - name: "6 tmux line"
+        continue-on-error: true
+        run: terrahour --tmux --at 2026-03-18T14:30:00Z
+      - name: "7 markets once"
+        continue-on-error: true
+        run: terrahour --once --markets --size 100x30 --at 2026-03-18T14:30:00Z | head -c 300
+      - name: "8 interactive needs termios (Unix-only module)"
+        continue-on-error: true
+        run: python -c "import termios"
+      - name: "9 test suite"
+        continue-on-error: true
+        run: pytest -q -rf --tb=line
